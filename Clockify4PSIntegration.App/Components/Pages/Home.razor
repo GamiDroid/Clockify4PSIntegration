@@ -21,7 +21,6 @@ Welcome to your new app.
 
     protected override async Task OnInitializedAsync()
     {
-        Console.WriteLine("Oninit");
         UserInfo = await Api4PS.GetUserInfoAsync();
     }
 
