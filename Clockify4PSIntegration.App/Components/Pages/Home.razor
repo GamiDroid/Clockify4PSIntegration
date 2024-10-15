@@ -1,0 +1,28 @@
+﻿@page "/"
+@using Clockify4PSIntegration.App.Api4PS
+@inject Api4PSService Api4PS
+
+<PageTitle>Home</PageTitle>
+
+@if (UserInfo is not null)
+{
+    <h1>Hello, @UserInfo.DisplayName!</h1>
+}
+else
+{
+    <h1>Hello, world!</h1>
+}
+
+Welcome to your new app.
+
+@code {
+    
+    UserInfoResponse? UserInfo;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine("Oninit");
+        UserInfo = await Api4PS.GetUserInfoAsync();
+    }
+
+}
