@@ -8,7 +8,7 @@ builder.Services.AddScoped<ITokenAuthenticationService, CachedAuthenticationServ
 builder.Services.AddMemoryCache();
 
 builder.Services.AddTransient<Api4PSAuthenticationHandler>();
-builder.Services.AddHttpClient<Api4PSService>(client =>
+builder.Services.AddHttpClient<Api4PSService>("4PS", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["4PS:BaseAddress"]!);
 }).AddHttpMessageHandler<Api4PSAuthenticationHandler>();

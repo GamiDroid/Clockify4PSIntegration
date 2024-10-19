@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using Clockify4PSIntegration.App.Api4PS.Request;
+using Clockify4PSIntegration.App.Api4PS.Responses;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Clockify4PSIntegration.App.Api4PS;
@@ -11,19 +13,19 @@ public interface ITokenAuthenticationService
 public record TokenResponse(string Token, DateTime Expires);
 
 public class Api4PSAuthenticationService(
-    HttpClient httpClient,
+    IHttpClientFactory httpClientFactory,
     IConfiguration configuration) : ITokenAuthenticationService
 {
-    private readonly HttpClient _httpClient = httpClient;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IConfiguration _configuration = configuration;
 
     public async Task<TokenResponse> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
+        using var httpClient = _httpClientFactory.CreateClient("4PS");
+
         LoginRequest request = new(_configuration["4PS:Username"]!, _configuration["4PS:Password"]!, "HPT");
 
-        var baseUri = new Uri(_configuration["4PS:BaseAddress"]!);
-
-        var response = await _httpClient.PostAsJsonAsync(new Uri(baseUri, "_api/account/login"), request, cancellationToken);
+        var response = await httpClient.PostAsJsonAsync("_api/account/login", request, cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
