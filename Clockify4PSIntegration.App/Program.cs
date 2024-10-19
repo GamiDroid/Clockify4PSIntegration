@@ -1,4 +1,5 @@
 using Clockify4PSIntegration.App.Api4PS;
+using Clockify4PSIntegration.App.Clockify;
 using Clockify4PSIntegration.App.Components;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,9 @@ builder.Services.AddHttpClient<Api4PSService>("4PS", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["4PS:BaseAddress"]!);
 }).AddHttpMessageHandler<Api4PSAuthenticationHandler>();
+
+builder.Services.AddHttpClient<ClockifyService>("clockify", client =>
+    client.BaseAddress = new Uri(builder.Configuration["Clockify:BaseAddress"]!));
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
