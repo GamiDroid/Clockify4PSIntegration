@@ -1,0 +1,66 @@
+﻿@page "/clockify-demo"
+@using Clockify4PSIntegration.App.Clockify.Filters
+@using Clockify4PSIntegration.App.Clockify.Responses
+@using Clockify4PSIntegration.App.Clockify
+@inject ClockifyService Clockify
+
+<PageTitle>Clockify Demo</PageTitle>
+
+<h1>Clockify Demo</h1>
+
+@if(UserInfo is not null)
+{
+    <p>Hello, @UserInfo.Name</p>
+}
+
+@if (Projects is not null)
+{
+    <ul>
+        @foreach (var project in Projects)
+        {
+            <li>@project.Name : @project.ClientName</li>
+        }
+    </ul>
+}
+
+@if (TimeEntries is not null)
+{
+    <ul>
+    @foreach(var timeEntry in TimeEntries)
+    {
+        <li>@timeEntry.Description: @timeEntry.TimeInterval.Start.ToLocalTime() - @timeEntry.TimeInterval.End.ToLocalTime()</li>
+    }
+    </ul>
+}
+
+@code {
+    UserInfoResponse? UserInfo;
+    List<ProjectResponse>? Projects;
+    List<TimeEntryResponse>? TimeEntries;
+
+    protected override async Task OnInitializedAsync()
+    {
+        UserInfo = await Clockify.GetUserInfoAsync();
+
+        var filter = new TimeEntryRequestFilter(UserInfo.ActiveWorkspace, UserInfo.Id)
+            {
+                GetWeekBefore = new DateTime(2024, 10, 20)
+            };
+
+        TimeEntries = await Clockify.GetTimeEntriesAsync(filter);
+
+        Projects = await Clockify.GetProjectsAsync(UserInfo.ActiveWorkspace);
+
+        foreach (var work in TimeEntries.GroupBy(x => new { x.ProjectId, x.TaskId, x.Description }))
+        {
+            Console.WriteLine($"{work.Key.ProjectId}-{work.Key.TaskId}-{work.Key.Description }");
+
+            foreach (var dateAndTimeWorked in work.GroupBy(
+                                            x => x.TimeInterval.Start.Date, 
+                                            (key, element) => new { Date = key, Time = new TimeSpan(element.Sum(x => (x.TimeInterval.End - x.TimeInterval.Start).Ticks)) }))
+            {
+                Console.WriteLine($"   - {dateAndTimeWorked.Date} : {dateAndTimeWorked.Time}");   
+            }
+        }
+    }
+}

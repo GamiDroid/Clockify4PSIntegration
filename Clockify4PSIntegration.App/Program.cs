@@ -14,8 +14,10 @@ builder.Services.AddHttpClient<Api4PSService>("4PS", client =>
     client.BaseAddress = new Uri(builder.Configuration["4PS:BaseAddress"]!);
 }).AddHttpMessageHandler<Api4PSAuthenticationHandler>();
 
+builder.Services.AddTransient<ClockifyApiKeyAuthenticationHandler>();
 builder.Services.AddHttpClient<ClockifyService>("clockify", client =>
-    client.BaseAddress = new Uri(builder.Configuration["Clockify:BaseAddress"]!));
+    client.BaseAddress = new Uri(builder.Configuration["Clockify:BaseAddress"]!))
+    .AddHttpMessageHandler<ClockifyApiKeyAuthenticationHandler>();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
