@@ -7,7 +7,6 @@ public record ProjectResponse(
     string? Key,
     string? Company,
     string? Type,
-    bool TypeSpecified,
     string? Description,
     string? Address,
     [property: JsonPropertyName("customer_name")] string? CustomerName);

@@ -1,6 +1,7 @@
 using Clockify4PSIntegration.App.Api4PS;
 using Clockify4PSIntegration.App.Clockify;
 using Clockify4PSIntegration.App.Components;
+using MudBlazor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,8 @@ builder.Services.AddHttpClient<ClockifyService>("clockify", client =>
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddMudServices();
 
 var app = builder.Build();
 

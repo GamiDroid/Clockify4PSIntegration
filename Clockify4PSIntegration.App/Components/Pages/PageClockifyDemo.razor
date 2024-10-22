@@ -8,30 +8,44 @@
 
 <h1>Clockify Demo</h1>
 
+
+
 @if(UserInfo is not null)
 {
     <p>Hello, @UserInfo.Name</p>
 }
 
-@if (Projects is not null)
-{
-    <ul>
-        @foreach (var project in Projects)
-        {
-            <li>@project.Name : @project.ClientName</li>
-        }
-    </ul>
-}
+<MudDataGrid Items="@Projects" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Projects</MudText>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Name" />
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.ClientId" />
+        <PropertyColumn Property="x => x.ClientName" />
+        <PropertyColumn Property="x => x.Archived" />
+        <PropertyColumn Property="x => x.Note" />
+        <PropertyColumn Property="x => x.Color" />
+    </Columns>
+</MudDataGrid>
 
-@if (TimeEntries is not null)
-{
-    <ul>
-    @foreach(var timeEntry in TimeEntries)
-    {
-        <li>@timeEntry.Description: @timeEntry.TimeInterval.Start.ToLocalTime() - @timeEntry.TimeInterval.End.ToLocalTime()</li>
-    }
-    </ul>
-}
+
+<MudDataGrid Items="@TimeEntries" Filterable="false" SortMode="@SortMode.None" Groupable="false">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Time-Entries</MudText>
+    </ToolBarContent>
+    <Columns>
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.Type" />
+        <PropertyColumn Property="x => x.Description" />
+        <PropertyColumn Property="x => x.ProjectId" />
+        <PropertyColumn Property="x => x.TaskId" />
+        <PropertyColumn Property="x => x.TagIds" />
+        <PropertyColumn Property="x => x.TimeInterval.Start" />
+        <PropertyColumn Property="x => x.TimeInterval.End" />
+    </Columns>
+</MudDataGrid>
 
 @code {
     UserInfoResponse? UserInfo;
