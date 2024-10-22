@@ -9,4 +9,4 @@ public record TimeEntryResponse(
     string? ProjectId,
     string? TaskId,
     string[]? TagIds,
-    string Type);
+    string Type) : BaseResponse;

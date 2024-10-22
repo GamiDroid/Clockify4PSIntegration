@@ -1,19 +1,21 @@
 ﻿@page "/clockify-demo"
+@using Clockify4PSIntegration.App.Clockify.Requests
 @using Clockify4PSIntegration.App.Clockify.Filters
 @using Clockify4PSIntegration.App.Clockify.Responses
-@using Clockify4PSIntegration.App.Clockify
+@using Clockify4PSIntegration.App.Clockify;
 @inject ClockifyService Clockify
+@inject IDialogService DialogService
 
 <PageTitle>Clockify Demo</PageTitle>
 
 <h1>Clockify Demo</h1>
 
-
-
 @if(UserInfo is not null)
 {
     <p>Hello, @UserInfo.Name</p>
 }
+
+<MudButton OnClick="SaveProject">Save Project</MudButton>
 
 <MudDataGrid Items="@Projects" Filterable="false" SortMode="@SortMode.None" Groupable="false">
     <ToolBarContent>
@@ -29,7 +31,6 @@
         <PropertyColumn Property="x => x.Color" />
     </Columns>
 </MudDataGrid>
-
 
 <MudDataGrid Items="@TimeEntries" Filterable="false" SortMode="@SortMode.None" Groupable="false">
     <ToolBarContent>
@@ -48,6 +49,7 @@
 </MudDataGrid>
 
 @code {
+
     UserInfoResponse? UserInfo;
     List<ProjectResponse>? Projects;
     List<TimeEntryResponse>? TimeEntries;
@@ -65,6 +67,10 @@
 
         Projects = await Clockify.GetProjectsAsync(UserInfo.ActiveWorkspace);
 
+        var damProjectId = "5eb2d05a088c4a353b929836";
+        var taskFilter = new ProjectTaskRequestFilter(UserInfo.ActiveWorkspace, damProjectId);
+        var tasks = await Clockify.GetTasksForProjectAsync(taskFilter);
+
         foreach (var work in TimeEntries.GroupBy(x => new { x.ProjectId, x.TaskId, x.Description }))
         {
             Console.WriteLine($"{work.Key.ProjectId}-{work.Key.TaskId}-{work.Key.Description }");
@@ -76,5 +82,35 @@
                 Console.WriteLine($"   - {dateAndTimeWorked.Date} : {dateAndTimeWorked.Time}");   
             }
         }
+    }
+
+    async Task SaveProject()
+    {
+        CreateProjectRequest create = new(UserInfo!.ActiveWorkspace, "Test project")
+        {
+            Tasks = [
+                new ProjectTask("Task #1"),
+                new ProjectTask("Task #2"),
+                new ProjectTask("Task #3"),
+                new ProjectTask("Task #4"),
+            ]
+        };
+        var project = await Clockify.CreateProjectAsync(create);
+
+        await DialogService.ShowMessageBox(
+            "Project created",
+            project.Id);
+
+        UpdateProjectRequest update = new(UserInfo!.ActiveWorkspace, project.Id)
+            {
+                Name = "Test project [updated]",
+                Note = "This is a custom note",
+            };
+
+        project = await Clockify.UpdateProjectAsync(update);
+
+        await DialogService.ShowMessageBox(
+            "Project updated",
+            project.Id);
     }
 }

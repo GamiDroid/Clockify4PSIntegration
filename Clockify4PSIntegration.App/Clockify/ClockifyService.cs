@@ -1,4 +1,6 @@
-﻿using Clockify4PSIntegration.App.Clockify.Filters;
+﻿using Clockify4PSIntegration.App.Clockify.Exceptions;
+using Clockify4PSIntegration.App.Clockify.Filters;
+using Clockify4PSIntegration.App.Clockify.Requests;
 using Clockify4PSIntegration.App.Clockify.Responses;
 using Microsoft.Extensions.Primitives;
 
@@ -62,18 +64,60 @@ public sealed class ClockifyService
         return response!;
     }
 
-    //public Task<ProjectResponse> CreateProjectAsync(CancellationToken cancellationToken = default)
-    //{
-    //    return Task.FromResult();
-    //}
+    public async Task<ProjectResponse> CreateProjectAsync(CreateProjectRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PostAsJsonAsync($"/api/v1/workspaces/{request.WorkspaceId}/projects", request, cancellationToken);
+
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<ProjectResponse>(cancellationToken);
+        return content!;
+    }
+
+    public async Task<ProjectResponse> UpdateProjectAsync(UpdateProjectRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PutAsJsonAsync($"/api/v1/workspaces/{request.WorkspaceId}/projects/{request.ProjectId}", request, cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var message = (response.StatusCode) switch
+            {
+                System.Net.HttpStatusCode.MethodNotAllowed => await response.Content.ReadAsStringAsync(cancellationToken),
+                _ => "Unknown response status code"
+            };
+
+            throw new UpdateProjectRequestFailedException(message, response);
+        }
+
+        var content = await response.Content.ReadFromJsonAsync<ProjectResponse>(cancellationToken);
+        return content!;
+    }
+
+    public async Task<List<ProjectTaskResponse>> GetTasksForProjectAsync(ProjectTaskRequestFilter filter, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.GetFromJsonAsync<List<ProjectTaskResponse>>(
+            $"/api/v1/workspaces/{filter.WorkspaceId}/projects/{filter.ProjectId}/tasks", 
+            cancellationToken);
+        return response!;
+    }
+
+    public async Task<ProjectTaskResponse> AddTaskToProjectAsync(AddProjectTaskRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.PostAsJsonAsync(
+            $"/api/v1/workspaces/{request.WorkspaceId}/projects/{request.ProjectId}/tasks", 
+            request, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadFromJsonAsync<ProjectTaskResponse>(cancellationToken);
+        return content!;
+    }
+
+    public async Task<ProjectTaskResponse> DeleteTaskFromProjectAsync(DeleteProjectTaskRequest request, CancellationToken cancellationToken = default)
+    {
+        var response = await _httpClient.DeleteFromJsonAsync<ProjectTaskResponse>(
+            $"/api/v1/workspaces/{request.WorkspaceId}/projects/{request.ProjectId}/tasks/{request.TaskId}", cancellationToken);
+        return response!;
+    }
 
     private const string c_dateTimeFormat = "yyyy-MM-ddTHH:mm:ssZ";
-}
-
-public class CreateProjectRequest(string workspaceId, string name)
-{
-    public string WorkspaceId { get; } = workspaceId;
-    public string Name { get; } = name;
-
-
 }

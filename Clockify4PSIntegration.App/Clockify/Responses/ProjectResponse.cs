@@ -9,4 +9,4 @@ public record ProjectResponse(
     string Color,
     bool Archived,
     string Duration,
-    string Note);
+    string Note) : BaseResponse;
