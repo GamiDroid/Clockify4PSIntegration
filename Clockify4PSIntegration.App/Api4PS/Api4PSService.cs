@@ -59,5 +59,3 @@ public class Api4PSService(
         return lineResponse!;
     }
 }
-
-
